@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "incident-timeline-studio-ryan-vo"
+version = "1.0.0"
+description = "Evidence-centered incident timeline analysis and analyst review workspace"
+requires-python = ">=3.11"
+authors = [{name = "Ryan Vo", email = "ryandtvo@gmail.com"}]
+license = {text = "MIT"}
+[tool.setuptools.packages.find]
+include = ["backend*"]
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["."]

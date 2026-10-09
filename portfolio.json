@@ -1,0 +1,13 @@
+{
+  "name": "incident-timeline-studio-ryan-vo",
+  "owner": "A220man",
+  "email": "ryandtvo@gmail.com",
+  "version": "1.0.0",
+  "domain": "cybersecurity",
+  "summary": "Normalize incident evidence into UTC timelines, correlate shared entities, measure coverage gaps and event-rate anomalies, and preserve analyst review decisions with optional aggregate-only AI advice.",
+  "workflows": [
+    "Preview and transactionally import CSV/JSON evidence with timestamp normalization, provenance and replay deduplication",
+    "Inspect explainable temporal/entity correlations, telemetry gaps and robust event-rate anomalies",
+    "Record versioned analyst decisions, close incidents, inspect audit history and export safe CSV/JSON"
+  ]
+}
