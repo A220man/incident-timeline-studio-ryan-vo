@@ -1,0 +1,5 @@
+timestamp,source,message,severity,actor,host,ip
+2026-10-09T08:00:00-07:00,auth,Interactive login,medium,alice,workstation-7,192.0.2.40
+2026-10-09T15:02:00Z,endpoint,Archive opened,high,alice,workstation-7,192.0.2.40
+2026-10-09T15:03:00Z,network,Outbound connection,medium,,workstation-7,192.0.2.40
+2026-10-09T15:35:00Z,auth,Session ended,info,alice,workstation-7,192.0.2.40
