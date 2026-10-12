@@ -7,12 +7,12 @@ import { AnalysisPanel } from './components/AnalysisPanel';
 
 function Workspace({id,user,onChanged,onDeleted}:{id:string;user:User;onChanged:()=>void;onDeleted:()=>void}) {
  const [case_,setCase]=useState<Incident|null>(null),[events,setEvents]=useState<Page<Event>|null>(null),[report,setReport]=useState<Analysis|null>(null),[history,setHistory]=useState<History|null>(null),[advice,setAdvice]=useState<Advice|null>(null);
- const [revision,setRevision]=useState(0),[offset,setOffset]=useState(0),[query,setQuery]=useState(''),[status,setStatus]=useState('');
+ const [revision,setRevision]=useState(0),[offset,setOffset]=useState(0),[query,setQuery]=useState(''),[status,setStatus]=useState(''),[severity,setSeverity]=useState('');
  const [window,setWindow]=useState(300),[gap,setGap]=useState(900),[bucket,setBucket]=useState(60),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const canReview=user.roles.includes('admin')||user.roles.includes('reviewer');
  const refresh=()=>{setRevision(n=>n+1);onChanged();};
  useEffect(()=>{let alive=true;Promise.all([api.incident(id),api.analysis(id,window,gap,bucket),api.history(id)]).then(([c,r,h])=>{if(alive){setCase(c);setReport(r);setHistory(h);}}).catch(e=>{if(alive)setError(String(e));});return()=>{alive=false;};},[id,revision,window,gap,bucket]);
- useEffect(()=>{let alive=true;const timer=setTimeout(()=>{api.events(id,offset,query,status).then(result=>{if(alive)setEvents(result);}).catch(e=>{if(alive)setError(String(e));});},150);return()=>{alive=false;clearTimeout(timer);};},[id,revision,offset,query,status]);
+ useEffect(()=>{let alive=true;const timer=setTimeout(()=>{api.events(id,offset,query,status,severity).then(result=>{if(alive)setEvents(result);}).catch(e=>{if(alive)setError(String(e));});},150);return()=>{alive=false;clearTimeout(timer);};},[id,revision,offset,query,status,severity]);
  async function changeStatus(){if(!case_)return;setBusy(true);setError('');try{await api.update(case_,case_.status==='open'?'closed':'open');refresh();}catch(e){setError(String(e));}finally{setBusy(false);}}
  async function remove(){if(!confirm('Permanently delete this incident and its imported events? The deletion audit record remains.'))return;setBusy(true);try{await api.remove(id);onDeleted();}catch(e){setError(String(e));}finally{setBusy(false);}}
  async function requestAdvice(external:boolean){setBusy(true);setError('');try{setAdvice(await api.advice(id,external,window,gap,bucket));setRevision(n=>n+1);}catch(e){setError(String(e));}finally{setBusy(false);}}
@@ -26,7 +26,7 @@ function Workspace({id,user,onChanged,onDeleted}:{id:string;user:User;onChanged:
    {error&&<p role="alert" className="error">{error}</p>}</section>
   <ImportPanel id={id} disabled={!canReview||case_.status==='closed'} onImported={refresh}/>
   <AnalysisPanel report={report} advice={advice} window={window} gap={gap} bucket={bucket} onSettings={(w,g,b)=>{setWindow(w);setGap(g);setBucket(b);setAdvice(null);}} onAdvice={requestAdvice} canReview={canReview} busy={busy}/>
-  <Timeline id={id} data={events} offset={offset} onOffset={setOffset} query={query} onQuery={q=>{setQuery(q);setOffset(0);}} status={status} onStatus={s=>{setStatus(s);setOffset(0);}} disabled={!canReview||case_.status==='closed'} onSaved={refresh}/>
+  <Timeline id={id} data={events} offset={offset} onOffset={setOffset} query={query} onQuery={q=>{setQuery(q);setOffset(0);}} status={status} onStatus={s=>{setStatus(s);setOffset(0);}} severity={severity} onSeverity={s=>{setSeverity(s);setOffset(0);}} disabled={!canReview||case_.status==='closed'} onSaved={refresh}/>
   <section className="panel"><h2>Provenance and audit</h2><details><summary>Import receipts ({history?.imports.length??0})</summary>{history?.imports.map(row=><div key={row.id} className="receipt"><strong>{row.created_at}</strong><p>{row.inserted} inserted · {row.duplicates} duplicate rows · by {row.created_by}</p><code>{row.upload_sha256}</code></div>)}</details>
    <details><summary>Latest 200 audit entries</summary>{history?.audit.map(row=><div key={row.id} className="receipt"><strong>{row.action}</strong><p>{row.created_at} · {row.actor}</p><pre>{JSON.stringify(row.detail,null,2)}</pre></div>)}</details></section>
  </div>;

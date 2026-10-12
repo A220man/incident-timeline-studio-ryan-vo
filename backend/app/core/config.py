@@ -125,3 +125,12 @@ def validate_settings(settings: Settings) -> None:
 def ensure_db_dir(path: str) -> None:
     if path != ":memory:":
         Path(path).parent.mkdir(parents=True, exist_ok=True)
+
+
+def get_app_version() -> str:
+    for candidate in (Path("VERSION"), Path(__file__).resolve().parents[3] / "VERSION"):
+        if candidate.is_file():
+            ver = candidate.read_text().strip()
+            if ver:
+                return ver
+    return "1.0.0"

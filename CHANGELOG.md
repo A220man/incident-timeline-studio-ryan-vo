@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
+- Add severity filtering (`critical`, `high`, `medium`, `low`, `info`, `debug`, `unknown`) across backend API and frontend timeline.
+- Add `idx_events_severity` SQLite index for faster filtered queries on incident events.
+- Preserve analyst review notes and reviewer identity in exported timeline CSV.
+- Expose dynamic product version metadata from `VERSION` file for API and health endpoints.
+- Add tests for severity filtering, validation, CSV review note preservation, and timeline UI filtering.
+
 ## [1.0.0] - 2026-10-09
 
 - Add bounded CSV, JSON, and JSON Lines import with explicit epoch units, DST ambiguity rejection, UTC normalization, hashes, and replay-safe transactions.

@@ -22,11 +22,11 @@ All routes begin with `/api`. Session cookies authenticate requests. Obtain the 
 | `PATCH /incidents/{id}` | `{title, description, status, version}`; status open or closed |
 | `DELETE /incidents/{id}` | Admin-only cascade delete; 204 |
 | `POST /incidents/{id}/import` | Multipart file, format csv/json/jsonl, timezone, epoch_unit seconds/milliseconds, commit true/false |
-| `GET /incidents/{id}/events` | `{items, total, limit, offset}`; filters query, source, review_status; maximum page size 1000 |
+| `GET /incidents/{id}/events` | `{items, total, limit, offset}`; filters query, source, review_status, severity; maximum page size 1000 |
 | `PATCH /incidents/{id}/events/{event_id}` | `{status, note, version}`; status unreviewed/relevant/benign |
 | `GET /incidents/{id}/analysis` | Entity inventory, temporal components/edges, observed gaps, rate buckets and alerts |
 | `GET /incidents/{id}/history` | Import receipts and latest 200 audit entries |
-| `GET /incidents/{id}/export?format=csv` | Download all incident events; use format=json for full evidence and default-parameter analysis |
+| `GET /incidents/{id}/export?format=csv` | Download all incident events with review notes; use format=json for full evidence and default-parameter analysis |
 | `POST /incidents/{id}/advice` | `{external, window_seconds, gap_seconds, bucket_seconds}` → mode, evidence, items, limitations, optional warning |
 
 Analysis query defaults: `window_seconds=300`, `gap_seconds=900`, `bucket_seconds=60`. Positive bounded integers are required. A rate range exceeding 10,000 buckets returns an explicit range-too-large result rather than allocating unbounded memory.
