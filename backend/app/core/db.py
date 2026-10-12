@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS idx_events_time ON events(incident_id,timestamp,id);
 CREATE INDEX IF NOT EXISTS idx_events_review ON events(incident_id,review_status);
+CREATE INDEX IF NOT EXISTS idx_events_severity ON events(incident_id,severity);
 
 CREATE TABLE IF NOT EXISTS audit_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

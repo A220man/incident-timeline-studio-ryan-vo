@@ -1,5 +1,8 @@
 # Incident Timeline Studio — Ryan Vo | AI & Machine Learning
 
+> Work in progress. This checkpoint may be incomplete or fail tests. See PLAN.md and STATUS.md before use.
+
+
 Current version: `1.0.0`.
 
 Incident Timeline Studio helps security analysts turn mixed CSV and JSON logs into a reviewable UTC timeline. It combines explicit timestamp normalization, entity-based temporal correlation, robust event-rate statistics, and optional grounded LLM advice. Every import and analyst decision is recorded, with version checks to prevent lost updates.
@@ -10,7 +13,7 @@ Incident Timeline Studio helps security analysts turn mixed CSV and JSON logs in
 - Normalize explicit offsets, named time zones, and numeric epochs without guessing epoch units or ambiguous daylight-saving times.
 - Deduplicate replayed evidence while preserving upload hashes, row hashes, original timestamps, and import receipts.
 - Trace correlation edges to their shared entity and exact time difference; inspect source gaps and rate anomalies.
-- Mark events relevant or benign, record reasons, close an incident, and export CSV or JSON for review.
+- Mark events relevant or benign, record reasons, filter by severity or review status, close an incident, and export CSV or JSON with preserved review notes.
 - Request local guidance or opt in to external AI advice using only aggregate measurements.
 
 ## Architecture

@@ -11,7 +11,7 @@ def cell(value):
 
 
 def timeline_csv(events: list[dict]) -> str:
-    fields = ['id', 'timestamp', 'source', 'severity', 'message', 'actor', 'host', 'ip', 'fingerprint', 'review_status']
+    fields = ['id', 'timestamp', 'source', 'severity', 'message', 'actor', 'host', 'ip', 'fingerprint', 'review_status', 'review_note', 'reviewed_by']
     stream = io.StringIO(newline='')
     writer = csv.writer(stream)
     writer.writerow(fields)

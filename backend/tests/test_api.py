@@ -121,3 +121,23 @@ def test_no_key_external_advice_is_explicit_failure(client):
     id=incident(client)['id']
     r=client.post(f'/api/incidents/{id}/advice',json={'external':True})
     assert r.status_code==409 and r.json()['error']['code']=='llm_not_configured'
+
+
+def test_event_severity_filtering(client):
+    id = incident(client)['id']
+    rows = [
+        {'timestamp': '2026-10-09T12:00:00Z', 'message': 'Root login', 'severity': 'critical'},
+        {'timestamp': '2026-10-09T12:01:00Z', 'message': 'Port scan', 'severity': 'high'},
+        {'timestamp': '2026-10-09T12:02:00Z', 'message': 'DNS query', 'severity': 'info'},
+    ]
+    upload(client, id, rows)
+    crit = client.get(f'/api/incidents/{id}/events', params={'severity': 'critical'}).json()
+    assert crit['total'] == 1 and crit['items'][0]['message'] == 'Root login'
+    high = client.get(f'/api/incidents/{id}/events', params={'severity': 'high'}).json()
+    assert high['total'] == 1 and high['items'][0]['message'] == 'Port scan'
+    med = client.get(f'/api/incidents/{id}/events', params={'severity': 'medium'}).json()
+    assert med['total'] == 0
+    all_events = client.get(f'/api/incidents/{id}/events', params={'severity': ''}).json()
+    assert all_events['total'] == 3
+    invalid = client.get(f'/api/incidents/{id}/events', params={'severity': 'extreme'})
+    assert invalid.status_code == 422

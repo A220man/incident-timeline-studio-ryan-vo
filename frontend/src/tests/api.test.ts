@@ -17,3 +17,9 @@ test('preserves version conflict detail',async()=>{
 test('logout handles empty success response',async()=>{
  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(null,{status:204})));await expect(api.logout()).resolves.toBeUndefined();
 });
+test('events API passes severity query parameter',async()=>{
+ const mock=vi.fn().mockResolvedValue(new Response(JSON.stringify({items:[],total:0})));vi.stubGlobal('fetch',mock);
+ await api.events('case-1',0,'','','high');
+ const url=new URL('http://localhost'+mock.mock.calls[0][0]);
+ expect(url.searchParams.get('severity')).toBe('high');
+});

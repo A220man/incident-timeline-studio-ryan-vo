@@ -54,13 +54,15 @@ def _event(row) -> dict:
 
 
 def list_events(db: Database, id: str, limit: int = 200, offset: int = 0,
-                source: str = '', review_status: str = '', query: str = '') -> dict:
+                source: str = '', review_status: str = '', query: str = '', severity: str = '') -> dict:
     incident(db, id)
     clauses, params = ['incident_id=?'], [id]
     if source:
         clauses.append('source=?'); params.append(source)
     if review_status:
         clauses.append('review_status=?'); params.append(review_status)
+    if severity:
+        clauses.append('severity=?'); params.append(severity)
     if query:
         # instr avoids treating user-supplied '%' and '_' as wildcard operators.
         clauses.append('instr(lower(payload),lower(?)) > 0'); params.append(query)

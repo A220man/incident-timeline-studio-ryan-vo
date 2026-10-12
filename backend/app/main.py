@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from .core.config import Settings, load_settings, validate_settings, ensure_db_dir
+from .core.config import Settings, load_settings, validate_settings, ensure_db_dir, get_app_version
 from .core.db import Database
 from .core.auth import router as auth_router, OIDCClient
 from .core.errors import AppError
@@ -16,13 +16,14 @@ def create_app(settings: Settings | None = None, oidc_transport=None) -> FastAPI
     validate_settings(settings)
     ensure_db_dir(settings.database_path)
     db = Database(settings.database_path)
+    version = get_app_version()
 
     @asynccontextmanager
     async def lifespan(app):
         yield
         db.close()
 
-    app = FastAPI(title='Incident Timeline Studio', version='1.0.0', lifespan=lifespan)
+    app = FastAPI(title='Incident Timeline Studio', version=version, lifespan=lifespan)
     app.state.settings = settings
     app.state.db = db
     app.state.oidc = OIDCClient(settings, oidc_transport)
@@ -43,7 +44,7 @@ def create_app(settings: Settings | None = None, oidc_transport=None) -> FastAPI
     @app.get('/api/health')
     def health():
         db.query_one('SELECT 1')
-        return {'status': 'ok', 'version': '1.0.0'}
+        return {'status': 'ok', 'version': version}
 
     app.include_router(auth_router)
     app.include_router(router)

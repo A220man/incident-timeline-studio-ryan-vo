@@ -135,3 +135,13 @@ def test_csv_neutralizes_formulas_without_mutation(formula):
     row = event(1, message=formula)
     output = list(csv.DictReader(io.StringIO(timeline_csv([row]))))[0]
     assert output['message'] == "'" + formula and row['message'] == formula
+
+
+def test_csv_export_preserves_review_notes_and_reviewer():
+    row = event(1, review_status='relevant', review_note='Confirmed breach via credential spray', reviewed_by='analyst-42')
+    reader = csv.DictReader(io.StringIO(timeline_csv([row])))
+    assert 'review_note' in reader.fieldnames and 'reviewed_by' in reader.fieldnames
+    rows = list(reader)
+    assert rows[0]['review_note'] == 'Confirmed breach via credential spray'
+    assert rows[0]['reviewed_by'] == 'analyst-42'
+    assert rows[0]['review_status'] == 'relevant'
