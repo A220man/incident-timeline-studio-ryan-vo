@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-severity-filtering-and-review-export
+evidence-tagging-and-bulk-triage
 
 ## Roadmap
 
@@ -93,11 +93,15 @@ Tests: `backend/tests/test_api.py`, `backend/tests/test_domain.py`, `frontend/sr
 
 ### component-subgraph-filtering — Connected component and entity subgraph filtering
 
-Status: planned
+Status: done
 
 Acceptance:
 - Filter timeline view to events belonging to a specific correlation component
 - Highlight entity link paths directly on timeline items
+
+Implementation: `backend/app/api/routes.py`, `backend/app/services/catalog.py`, `backend/app/services/analysis.py`, `frontend/src/types.ts`, `frontend/src/api.ts`, `frontend/src/App.tsx`, `frontend/src/components/Timeline.tsx`
+
+Tests: `backend/tests/test_api.py`, `backend/tests/test_domain.py`, `frontend/src/tests/timeline.test.tsx`
 
 ### evidence-tagging-and-bulk-triage — Bulk review actions and multi-event triage tagging
 

@@ -1,10 +1,16 @@
 # Changelog
 
+## 1.2.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.1.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
 
-- Add severity filtering (`critical`, `high`, `medium`, `low`, `info`, `debug`, `unknown`) across backend API and frontend timeline.
+- Add connected component and entity subgraph filtering: filter timeline to events in a specific correlation component via `/api/incidents/{id}/components` endpoint and component filter dropdown in UI.
+- Add `Component` type and `ComponentsResponse` to frontend types; populate component dropdown from analysis correlation components.
+- Add tests for component filtering in backend API and frontend timeline.
 - Add `idx_events_severity` SQLite index for faster filtered queries on incident events.
 - Preserve analyst review notes and reviewer identity in exported timeline CSV.
 - Expose dynamic product version metadata from `VERSION` file for API and health endpoints.
