@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import uuid
 from ..core.db import Database, utcnow
-from ..core.errors import AppError
+from .analysis import correlate
 from .normalization import MAX_ROWS
+from ..core.errors import AppError
 
 
 def audit(conn, actor, action, target, detail):
@@ -22,15 +23,16 @@ def incident(db: Database, id: str) -> dict:
 def create_incident(db: Database, title: str, description: str, actor: str) -> dict:
     id, now = str(uuid.uuid4()), utcnow()
     with db.transaction() as conn:
-        conn.execute('INSERT INTO incidents VALUES(?,?,?,?,?,?,?,?)', (id, title.strip(), description.strip(), 'open', 1, actor, now, now))
+        conn.execute('INSERT INTO incidents VALUES(?,?,?,?,?,?,?,?)',
+                     (id, title.strip(), description.strip(), 'open', 1, actor, now, now))
         audit(conn, actor, 'incident.create', id, {'title': title.strip()})
     return incident(db, id)
 
 
 def list_incidents(db: Database, limit: int, offset: int) -> dict:
     rows = db.query('''SELECT i.*, (SELECT COUNT(*) FROM events e WHERE e.incident_id=i.id) AS event_count,
-        (SELECT COUNT(*) FROM events e WHERE e.incident_id=i.id AND e.review_status='unreviewed') AS unreviewed_count
-        FROM incidents i ORDER BY i.updated_at DESC,i.id LIMIT ? OFFSET ?''', (limit, offset))
+                       (SELECT COUNT(*) FROM events e WHERE e.incident_id=i.id AND e.review_status='unreviewed') AS unreviewed_count
+                       FROM incidents i ORDER BY i.updated_at DESC,i.id LIMIT ? OFFSET ?''', (limit, offset))
     return {'items': [dict(row) for row in rows], 'total': db.query_one('SELECT COUNT(*) AS n FROM incidents')['n']}
 
 
@@ -43,7 +45,7 @@ def update_incident(db: Database, id: str, title: str, description: str, status:
             raise AppError(409, 'version_conflict', 'Incident changed; refresh before saving')
         conn.execute('UPDATE incidents SET title=?,description=?,status=?,version=version+1,updated_at=? WHERE id=?',
                      (title.strip(), description.strip(), status, utcnow(), id))
-        audit(conn, actor, 'incident.update', id, {'previous_status': old['status'], 'status': status, 'version': version+1})
+        audit(conn, actor, 'incident.update', id, {'previous_status': old['status'], 'status': status, 'version': version + 1})
     return incident(db, id)
 
 
@@ -54,7 +56,8 @@ def _event(row) -> dict:
 
 
 def list_events(db: Database, id: str, limit: int = 200, offset: int = 0,
-                source: str = '', review_status: str = '', query: str = '', severity: str = '') -> dict:
+                source: str = '', review_status: str = '', query: str = '', severity: str = '',
+                component: str = '') -> dict:
     incident(db, id)
     clauses, params = ['incident_id=?'], [id]
     if source:
@@ -64,16 +67,49 @@ def list_events(db: Database, id: str, limit: int = 200, offset: int = 0,
     if severity:
         clauses.append('severity=?'); params.append(severity)
     if query:
-        # instr avoids treating user-supplied '%' and '_' as wildcard operators.
         clauses.append('instr(lower(payload),lower(?)) > 0'); params.append(query)
+    if component:
+        component_event_ids = _get_component_event_ids(db, id, component)
+        if component_event_ids:
+            placeholders = ','.join('?' for _ in component_event_ids)
+            clauses.append(f'id IN ({placeholders})')
+            params.extend(component_event_ids)
+        else:
+            return {'items': [], 'total': 0, 'limit': limit, 'offset': offset}
     where = ' AND '.join(clauses)
     rows = db.query(f'SELECT * FROM events WHERE {where} ORDER BY timestamp,id LIMIT ? OFFSET ?', (*params, limit, offset))
     total = db.query_one(f'SELECT COUNT(*) AS n FROM events WHERE {where}', params)['n']
     return {'items': [_event(row) for row in rows], 'total': total, 'limit': limit, 'offset': offset}
 
 
+def _get_component_event_ids(db: Database, incident_id: str, component_id: str) -> list[str]:
+    events = all_events(db, incident_id)
+    correlation = correlate(events)
+    for comp in correlation['components']:
+        if comp['event_ids'][0] == component_id:
+            return comp['event_ids']
+    return []
+
+
 def all_events(db: Database, id: str) -> list[dict]:
     return list_events(db, id, MAX_ROWS)['items']
+
+
+def list_components(db: Database, incident_id: str, window_seconds: float = 300) -> list[dict]:
+    incident(db, incident_id)
+    events = all_events(db, incident_id)
+    correlation = correlate(events, window_seconds)
+    return [
+        {
+            'component_id': comp['event_ids'][0],
+            'size': comp['size'],
+            'start': comp['start'],
+            'end': comp['end'],
+            'duration_seconds': comp['duration_seconds'],
+            'event_ids': comp['event_ids'],
+        }
+        for comp in correlation['components']
+    ]
 
 
 def import_events(db: Database, id: str, preview: dict, format: str, zone: str, unit: str, actor: str) -> dict:
@@ -100,8 +136,9 @@ def import_events(db: Database, id: str, preview: dict, format: str, zone: str, 
         for row in additions:
             event_id = str(uuid.uuid4())
             conn.execute('''INSERT INTO events(id,incident_id,import_id,fingerprint,timestamp,source,severity,payload,updated_at)
-                            VALUES(?,?,?,?,?,?,?,?,?)''', (event_id, id, import_id, row['fingerprint'], row['timestamp'], row['source'],
-                                                         row['severity'], json.dumps(row, ensure_ascii=False), now))
+                            VALUES(?,?,?,?,?,?,?,?,?)''',
+                         (event_id, id, import_id, row['fingerprint'], row['timestamp'], row['source'],
+                          row['severity'], json.dumps(row, ensure_ascii=False), now))
         conn.execute('UPDATE incidents SET updated_at=?,version=version+1 WHERE id=?', (now, id))
         audit(conn, actor, 'evidence.import', id, {'import_id': import_id, 'upload_sha256': preview['upload_sha256'],
                                                'inserted': len(additions), 'duplicates': duplicates})
@@ -123,7 +160,7 @@ def review_event(db: Database, incident_id: str, event_id: str, status: str, not
         conn.execute('UPDATE events SET review_status=?,review_note=?,reviewed_by=?,version=version+1,updated_at=? WHERE id=?',
                      (status, note.strip(), actor, utcnow(), event_id))
         audit(conn, actor, 'event.review', incident_id, {'event_id': event_id, 'previous_status': row['review_status'],
-                                                     'status': status, 'version': version+1, 'note': note.strip()})
+                                                     'status': status, 'version': version + 1, 'note': note.strip()})
         conn.execute('UPDATE incidents SET updated_at=?,version=version+1 WHERE id=?', (utcnow(), incident_id))
         result = conn.execute('SELECT * FROM events WHERE id=?', (event_id,)).fetchone()
     return _event(result)

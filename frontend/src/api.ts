@@ -1,4 +1,4 @@
-import type { User, Incident, Page, Event, Preview, ImportReceipt, Analysis, Advice, History } from './types';
+import type { User, Incident, Page, Event, Preview, ImportReceipt, Analysis, Advice, History, ComponentsResponse } from './types';
 let csrf = '';
 export function setCsrf(value:string) { csrf=value; }
 export class ApiError extends Error { constructor(public status:number,message:string){super(message);} }
@@ -23,13 +23,14 @@ export const api={
  incident:(id:string)=>request<Incident>(path(id)),
  update:(case_:Incident,status:'open'|'closed')=>request<Incident>(path(case_.id),'PATCH',{title:case_.title,description:case_.description,status,version:case_.version}),
  remove:(id:string)=>request<void>(path(id),'DELETE'),
- events:(id:string,offset:number,query:string,status:string,severity='')=>request<Page<Event>>(path(id)+'/events?'+new URLSearchParams({offset:String(offset),limit:'100',query,review_status:status,...(severity?{severity}:{})})),
+ events:(id:string,offset:number,query:string,status:string,severity='',component='')=>request<Page<Event>>(path(id)+'/events?'+new URLSearchParams({offset:String(offset),limit:'100',query,review_status:status,...(severity?{severity}:{}),...(component?{component}:{})})),
  review:(id:string,event:Event,status:Event['review_status'],note:string)=>request<Event>(path(id)+'/events/'+event.id,'PATCH',{status,note,version:event.version}),
  import:(id:string,file:File,format:string,zone:string,unit:string,commit:boolean)=>{
   const body=new FormData();body.set('file',file);body.set('format',format);body.set('timezone',zone);body.set('epoch_unit',unit);body.set('commit',String(commit));
   return request<Preview|ImportReceipt>(path(id)+'/import','POST',body);
  },
  analysis:(id:string,window:number,gap:number,bucket:number)=>request<Analysis>(path(id)+'/analysis?'+new URLSearchParams({window_seconds:String(window),gap_seconds:String(gap),bucket_seconds:String(bucket)})),
+ components:(id:string,window:number)=>request<ComponentsResponse>(path(id)+'/components?'+new URLSearchParams({window_seconds:String(window)})),
  history:(id:string)=>request<History>(path(id)+'/history'),
  advice:(id:string,external:boolean,window:number,gap:number,bucket:number)=>request<Advice>(path(id)+'/advice','POST',{external,window_seconds:window,gap_seconds:gap,bucket_seconds:bucket}),
  exportUrl:(id:string,format:string)=>'/api'+path(id)+'/export?format='+format,

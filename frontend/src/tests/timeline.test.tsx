@@ -43,6 +43,9 @@ test('renders severity filter and fires onSeverity on change', () => {
       onStatus={() => {}}
       severity=""
       onSeverity={onSeverity}
+      component=""
+      onComponent={() => {}}
+      components={[]}
       disabled={false}
       onSaved={() => {}}
     />
