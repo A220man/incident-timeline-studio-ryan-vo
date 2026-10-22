@@ -165,6 +165,58 @@ def review_event(db: Database, incident_id: str, event_id: str, status: str, not
         result = conn.execute('SELECT * FROM events WHERE id=?', (event_id,)).fetchone()
     return _event(result)
 
+def bulk_review_events(db: Database, incident_id: str, event_ids: list[str], status: str, note: str, tags: list[str], actor: str) -> dict:
+    """Review multiple events in a single transaction. All must succeed or all fail."""
+    if not event_ids:
+        raise AppError(400, 'no_events', 'At least one event ID is required')
+    if status not in ('unreviewed', 'relevant', 'benign'):
+        raise AppError(422, 'invalid_status', 'Status must be unreviewed, relevant, or benign')
+    if len(tags) > 10:
+        raise AppError(422, 'too_many_tags', 'Maximum 10 tags allowed')
+    for tag in tags:
+        if not tag or len(tag) > 64:
+            raise AppError(422, 'invalid_tag', 'Tags must be 1-64 characters')
+
+    with db.transaction() as conn:
+        case = conn.execute('SELECT status FROM incidents WHERE id=?', (incident_id,)).fetchone()
+        if case is None:
+            raise AppError(404, 'incident_not_found', 'Incident was not found')
+        if case['status'] != 'open':
+            raise AppError(409, 'incident_closed', 'Reopen this incident before changing review decisions')
+
+        placeholders = ','.join('?' for _ in event_ids)
+        rows = conn.execute(
+            f'SELECT id, version, review_status, review_note, reviewed_by FROM events WHERE id IN ({placeholders}) AND incident_id=?',
+            (*event_ids, incident_id)
+        ).fetchall()
+
+        if len(rows) != len(event_ids):
+            found_ids = {row['id'] for row in rows}
+            missing = [eid for eid in event_ids if eid not in found_ids]
+            raise AppError(404, 'event_not_found', f'Events not found in this incident: {", ".join(missing)}')
+
+        now = utcnow()
+        updated = 0
+        for row in rows:
+            conn.execute(
+                'UPDATE events SET review_status=?, review_note=?, reviewed_by=?, version=version+1, updated_at=? WHERE id=?',
+                (status, note.strip(), actor, now, row['id'])
+            )
+            audit(conn, actor, 'event.review', incident_id, {
+                'event_id': row['id'],
+                'previous_status': row['review_status'],
+                'status': status,
+                'version': row['version'] + 1,
+                'note': note.strip(),
+                'bulk': True,
+                'tags': tags
+            })
+            updated += 1
+
+        conn.execute('UPDATE incidents SET updated_at=?, version=version+1 WHERE id=?', (now, incident_id))
+
+    return {'updated': updated, 'status': status, 'tags': tags}
+
 
 def delete_incident(db: Database, id: str, actor: str):
     with db.transaction() as conn:

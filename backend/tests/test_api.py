@@ -141,3 +141,116 @@ def test_event_severity_filtering(client):
     assert all_events['total'] == 3
     invalid = client.get(f'/api/incidents/{id}/events', params={'severity': 'extreme'})
     assert invalid.status_code == 422
+def test_bulk_review_events(client):
+    id = incident(client)['id']
+    rows = [
+        {'timestamp': '2026-10-09T12:00:00Z', 'message': 'Root login', 'severity': 'critical', 'actor': 'alice'},
+        {'timestamp': '2026-10-09T12:01:00Z', 'message': 'Port scan', 'severity': 'high', 'actor': 'bob'},
+        {'timestamp': '2026-10-09T12:02:00Z', 'message': 'DNS query', 'severity': 'info', 'actor': 'charlie'},
+    ]
+    upload(client, id, rows)
+    events = client.get(f'/api/incidents/{id}/events').json()['items']
+    assert len(events) == 3
+    event_ids = [e['id'] for e in events]
+    versions = {e['id']: e['version'] for e in events}
+
+    # Bulk mark first two as relevant with tags
+    r = client.patch(f'/api/incidents/{id}/events/bulk', json={
+        'event_ids': event_ids[:2],
+        'status': 'relevant',
+        'note': 'Suspicious activity cluster',
+        'tags': ['credential-access', 'reconnaissance']
+    })
+    assert r.status_code == 200, r.text
+    result = r.json()
+    assert result['updated'] == 2
+    assert result['status'] == 'relevant'
+    assert result['tags'] == ['credential-access', 'reconnaissance']
+
+    # Verify both events updated
+    updated = client.get(f'/api/incidents/{id}/events', params={'review_status': 'relevant'}).json()
+    assert updated['total'] == 2
+    for item in updated['items']:
+        assert item['review_status'] == 'relevant'
+        assert item['review_note'] == 'Suspicious activity cluster'
+        assert item['reviewed_by'] == 'local-demo'
+        assert item['version'] == versions[item['id']] + 1
+
+    # Third event should remain unreviewed
+    unreviewed = client.get(f'/api/incidents/{id}/events', params={'review_status': 'unreviewed'}).json()
+    assert unreviewed['total'] == 1
+
+    # Audit log should have bulk review entries
+    history = client.get(f'/api/incidents/{id}/history').json()
+    bulk_audits = [a for a in history['audit'] if a['action'] == 'event.review' and a['detail'].get('bulk')]
+    assert len(bulk_audits) == 2
+    for audit in bulk_audits:
+        assert audit['detail']['bulk'] is True
+        assert audit['detail']['tags'] == ['credential-access', 'reconnaissance']
+
+def test_bulk_review_empty_list_rejected(client):
+    id = incident(client)['id']
+    r = client.patch(f'/api/incidents/{id}/events/bulk', json={
+        'event_ids': [],
+        'status': 'relevant',
+        'note': '',
+        'tags': []
+    })
+    assert r.status_code == 422
+    # Pydantic validation error for min_length=1
+    assert 'event_ids' in r.text
+
+def test_bulk_review_invalid_status_rejected(client):
+    id = incident(client)['id']
+    upload(client, id)
+    events = client.get(f'/api/incidents/{id}/events').json()['items']
+    r = client.patch(f'/api/incidents/{id}/events/bulk', json={
+        'event_ids': [events[0]['id']],
+        'status': 'invalid',
+        'note': '',
+        'tags': []
+    })
+    assert r.status_code == 422
+    # Pydantic validation error for enum
+    assert 'status' in r.text
+
+def test_bulk_review_too_many_tags_rejected(client):
+    id = incident(client)['id']
+    upload(client, id)
+    events = client.get(f'/api/incidents/{id}/events').json()['items']
+    r = client.patch(f'/api/incidents/{id}/events/bulk', json={
+        'event_ids': [events[0]['id']],
+        'status': 'relevant',
+        'note': '',
+        'tags': [f'tag{i}' for i in range(11)]
+    })
+    assert r.status_code == 422
+    # Pydantic validation error for max_length=10
+    assert 'tags' in r.text
+def test_bulk_review_closed_incident_rejected(client):
+    id = incident(client)['id']
+    upload(client, id)
+    events = client.get(f'/api/incidents/{id}/events').json()['items']
+    # Close incident
+    case = client.get(f'/api/incidents/{id}').json()
+    client.patch(f'/api/incidents/{id}', json={'title': case['title'], 'description': case['description'], 'status': 'closed', 'version': case['version']})
+
+    r = client.patch(f'/api/incidents/{id}/events/bulk', json={
+        'event_ids': [events[0]['id']],
+        'status': 'relevant',
+        'note': '',
+        'tags': []
+    })
+    assert r.status_code == 409
+    assert r.json()['error']['code'] == 'incident_closed'
+def test_bulk_review_nonexistent_event_rejected(client):
+    id = incident(client)['id']
+    upload(client, id)
+    r = client.patch(f'/api/incidents/{id}/events/bulk', json={
+        'event_ids': ['nonexistent-id'],
+        'status': 'relevant',
+        'note': '',
+        'tags': []
+    })
+    assert r.status_code == 404
+    assert r.json()['error']['code'] == 'event_not_found'

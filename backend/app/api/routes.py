@@ -1,5 +1,4 @@
-"""Authenticated incident APIs. All evidence mutations use transactional services."""
-from typing import Literal
+from typing import List, Literal
 from fastapi import APIRouter, Request, UploadFile, File, Form, Query, Response
 from pydantic import BaseModel, Field, field_validator
 from ..core.auth import authorize
@@ -34,13 +33,16 @@ class ReviewInput(BaseModel):
     note: str = Field(default='', max_length=4000)
     version: int = Field(ge=1, strict=True)
 
-
+class BulkReviewRequest(BaseModel):
+    event_ids: List[str] = Field(min_length=1, max_length=1000)
+    status: Literal['unreviewed', 'relevant', 'benign']
+    note: str = Field(default='', max_length=4000)
+    tags: List[str] = Field(default=[], max_length=10)
 class AdviceInput(BaseModel):
     external: bool = False
     window_seconds: int = Field(default=300, ge=1, le=86400)
     gap_seconds: int = Field(default=900, ge=1, le=604800)
     bucket_seconds: int = Field(default=60, ge=1, le=86400)
-
 
 @router.get('/incidents')
 def incidents(request: Request, limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)):
@@ -106,12 +108,23 @@ def components(request: Request, id: str, window_seconds: int = Query(300, ge=1,
     authorize(request)
     return {'components': catalog.list_components(request.app.state.db, id, window_seconds)}
 
+@router.patch('/incidents/{incident_id}/events/bulk')
+def bulk_review(request: Request, incident_id: str, body: BulkReviewRequest):
+    user = authorize(request, 'reviewer')
+    return catalog.bulk_review_events(request.app.state.db, incident_id, body.event_ids, body.status, body.note, body.tags, user['subject'])
 
 
 @router.patch('/incidents/{id}/events/{event_id}')
 def review(request: Request, id: str, event_id: str, body: ReviewInput):
     user = authorize(request, 'reviewer')
     return catalog.review_event(request.app.state.db, id, event_id, body.status, body.note, body.version, user['subject'])
+
+
+@router.patch('/incidents/{incident_id}/events/bulk')
+def bulk_review(request: Request, incident_id: str, body: BulkReviewRequest):
+    print(f'DEBUG: bulk_review called with incident_id={incident_id}, body={body.model_dump()}')
+    user = authorize(request, 'reviewer')
+    return catalog.bulk_review_events(request.app.state.db, incident_id, body.event_ids, body.status, body.note, body.tags, user['subject'])
 
 
 @router.get('/incidents/{id}/analysis')
