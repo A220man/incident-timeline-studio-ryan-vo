@@ -119,14 +119,6 @@ def review(request: Request, id: str, event_id: str, body: ReviewInput):
     user = authorize(request, 'reviewer')
     return catalog.review_event(request.app.state.db, id, event_id, body.status, body.note, body.version, user['subject'])
 
-
-@router.patch('/incidents/{incident_id}/events/bulk')
-def bulk_review(request: Request, incident_id: str, body: BulkReviewRequest):
-    print(f'DEBUG: bulk_review called with incident_id={incident_id}, body={body.model_dump()}')
-    user = authorize(request, 'reviewer')
-    return catalog.bulk_review_events(request.app.state.db, incident_id, body.event_ids, body.status, body.note, body.tags, user['subject'])
-
-
 @router.get('/incidents/{id}/analysis')
 def analysis(request: Request, id: str, window_seconds: int = Query(300, ge=1, le=86400),
              gap_seconds: int = Query(900, ge=1, le=604800), bucket_seconds: int = Query(60, ge=1, le=86400)):
