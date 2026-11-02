@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS events (
  severity TEXT NOT NULL, payload TEXT NOT NULL,
  review_status TEXT NOT NULL DEFAULT 'unreviewed' CHECK(review_status IN ('unreviewed','relevant','benign')),
  review_note TEXT NOT NULL DEFAULT '', reviewed_by TEXT NOT NULL DEFAULT '',
+ tags TEXT NOT NULL DEFAULT '[]',
  version INTEGER NOT NULL DEFAULT 1, updated_at TEXT NOT NULL,
  UNIQUE(incident_id, fingerprint)
 );

@@ -1,8 +1,12 @@
 # Changelog
 
-## 1.4.0 — work-in-progress checkpoint
+## 1.5.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.4.0 — work-in-progress checkpoint
+
+- Add event tags persistence and UI display: tags stored in events table, accepted by single/bulk review APIs, displayed in timeline list and review panel.
 
 ## 1.3.0 — work-in-progress checkpoint
 
@@ -28,7 +32,7 @@ Partial code published for continued development. Known issues: STATUS.md.
 
 - Add bounded CSV, JSON, and JSON Lines import with explicit epoch units, DST ambiguity rejection, UTC normalization, hashes, and replay-safe transactions.
 - Add temporal/entity correlation explanations, observed source gaps, and robust event-rate analysis.
-- Add incident lifecycle, version-conflict protection, analyst decisions, audit history, and spreadsheet-safe exports.
+- Add incident lifecycle, version-conflict protection, analyst decisions, audit log, and spreadsheet-safe exports.
 - Add OIDC PKCE login, signed identity-token validation, revocable server sessions, CSRF protection, and viewer/reviewer/admin roles.
 - Add aggregate-only optional LLM advice with provider adapters and deterministic offline guidance.
 - Add a seeded train/held-out evaluation that exposes shared-infrastructure false positives.

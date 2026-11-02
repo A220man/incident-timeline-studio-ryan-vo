@@ -32,6 +32,7 @@ class ReviewInput(BaseModel):
     status: Literal['unreviewed', 'relevant', 'benign']
     note: str = Field(default='', max_length=4000)
     version: int = Field(ge=1, strict=True)
+    tags: List[str] = Field(default=[], max_length=10)
 
 class BulkReviewRequest(BaseModel):
     event_ids: List[str] = Field(min_length=1, max_length=1000)
@@ -117,7 +118,7 @@ def bulk_review(request: Request, incident_id: str, body: BulkReviewRequest):
 @router.patch('/incidents/{id}/events/{event_id}')
 def review(request: Request, id: str, event_id: str, body: ReviewInput):
     user = authorize(request, 'reviewer')
-    return catalog.review_event(request.app.state.db, id, event_id, body.status, body.note, body.version, user['subject'])
+    return catalog.review_event(request.app.state.db, id, event_id, body.status, body.note, body.version, user['subject'], body.tags)
 
 @router.get('/incidents/{id}/analysis')
 def analysis(request: Request, id: str, window_seconds: int = Query(300, ge=1, le=86400),

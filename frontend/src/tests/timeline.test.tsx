@@ -25,6 +25,7 @@ test('renders severity filter and fires onSeverity on change', () => {
         review_status: 'unreviewed',
         review_note: '',
         reviewed_by: '',
+        tags: [],
         version: 1,
       },
     ],

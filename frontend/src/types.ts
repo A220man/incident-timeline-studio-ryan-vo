@@ -1,6 +1,6 @@
 export interface User { subject:string; username:string; roles:string[]; csrf_token:string }
 export interface Incident { id:string; title:string; description:string; status:'open'|'closed'; version:number; created_by:string; created_at:string; updated_at:string; event_count?:number; unreviewed_count?:number }
-export interface Event { id:string; incident_id:string; import_id:string; timestamp:string; original_timestamp:string; source:string; message:string; severity:string; actor:string; host:string; ip:string; fingerprint:string; raw_sha256:string; row_number:number; review_status:'unreviewed'|'relevant'|'benign'; review_note:string; reviewed_by:string; version:number }
+export interface Event { id:string; incident_id:string; import_id:string; timestamp:string; original_timestamp:string; source:string; message:string; severity:string; actor:string; host:string; ip:string; fingerprint:string; raw_sha256:string; row_number:number; review_status:'unreviewed'|'relevant'|'benign'; review_note:string; reviewed_by:string; tags:string[]; version:number }
 export interface Page<T> { items:T[]; total:number; limit?:number; offset?:number }
 export interface Preview { events:Partial<Event>[]; errors:{row:number;message:string}[]; duplicates:number; input_rows:number; upload_sha256:string; can_commit:boolean }
 export interface ImportReceipt { id:string; inserted:number; duplicates:number; input_rows:number; replayed:boolean; upload_sha256:string; created_at:string; created_by:string }
