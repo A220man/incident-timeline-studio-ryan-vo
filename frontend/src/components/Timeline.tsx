@@ -3,12 +3,13 @@ import { api } from '../api';
 import type { Event, Page } from '../types';
 
 function Decision({event,id,disabled,onSaved}:{event:Event;id:string;disabled:boolean;onSaved:()=>void}) {
- const [status,setStatus]=useState(event.review_status),[note,setNote]=useState(event.review_note),[busy,setBusy]=useState(false),[error,setError]=useState('');
- async function save(){setBusy(true);setError('');try{await api.review(id,event,status,note);onSaved();}catch(e){setError(String(e));}finally{setBusy(false);}}
+ const [status,setStatus]=useState(event.review_status),[note,setNote]=useState(event.review_note),[tags,setTags]=useState(event.tags?.join(', ')||''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ async function save(){setBusy(true);setError('');try{const tagList=tags.split(',').map(t=>t.trim()).filter(Boolean);await api.review(id,event,status,note,tagList);onSaved();}catch(e){setError(String(e));}finally{setBusy(false);}}
  return <details><summary>Review decision and provenance</summary><div className="form-grid"><label>Decision<select aria-label="Decision" value={status} disabled={disabled} onChange={e=>setStatus(e.target.value as Event['review_status'])}><option value="unreviewed">Unreviewed</option><option value="relevant">Relevant</option><option value="benign">Benign</option></select></label>
-  <label>Analyst note<textarea value={note} maxLength={4000} disabled={disabled} onChange={e=>setNote(e.target.value)}/></label></div>
+  <label>Analyst note<textarea value={note} maxLength={4000} disabled={disabled} onChange={e=>setNote(e.target.value)}/></label>
+  <label>Tags (comma-separated)<input value={tags} maxLength={512} disabled={disabled} onChange={e=>setTags(e.target.value)} placeholder="phishing, credential-access"/></label></div>
   <button onClick={save} disabled={busy||disabled}>Save decision</button>{error&&<p role="alert" className="error">{error}</p>}
-  <dl><dt>Original timestamp</dt><dd>{event.original_timestamp}</dd><dt>Import row</dt><dd>{event.row_number}</dd><dt>Raw row SHA-256</dt><dd><code>{event.raw_sha256}</code></dd><dt>Normalized fingerprint</dt><dd><code>{event.fingerprint}</code></dd><dt>Reviewed by</dt><dd>{event.reviewed_by||'Not reviewed'}</dd></dl></details>;
+  <dl><dt>Original timestamp</dt><dd>{event.original_timestamp}</dd><dt>Import row</dt><dd>{event.row_number}</dd><dt>Raw row SHA-256</dt><dd><code>{event.raw_sha256}</code></dd><dt>Normalized fingerprint</dt><dd><code>{event.fingerprint}</code></dd><dt>Reviewed by</dt><dd>{event.reviewed_by||'Not reviewed'}</dd><dt>Tags</dt><dd>{event.tags?.length?event.tags.join(', '):'None'}</dd></dl></details>;
 }
 
 function BulkActionBar({id,selectedIds,disabled,onSaved,totalFiltered}:{id:string;selectedIds:string[];disabled:boolean;onSaved:()=>void;totalFiltered:number}) {
@@ -63,7 +64,7 @@ export function Timeline({id,data,offset,onOffset,query,onQuery,status,onStatus,
   {!data?.items.length&&<p className="empty">No events match. Import evidence or change the filters.</p>}
   <BulkActionBar id={id} selectedIds={selectedIds} disabled={disabled} onSaved={clearSelection} totalFiltered={totalFiltered}/>
   <ol className="timeline">{data?.items.map(event=><li key={event.id}><label className="event-row"><input type="checkbox" checked={selectedIds.includes(event.id)} onChange={()=>toggleSelect(event.id)} aria-label={`Select event ${event.id}`} disabled={disabled}/><div className="event-content"><div className="event-heading"><time>{event.timestamp}</time><span className={`badge ${event.severity}`}>{event.severity}</span><span className="badge">{event.review_status}</span></div>
-   <strong>{event.source}</strong><p className="message">{event.message}</p><p className="muted">{[event.actor&&`Actor: ${event.actor}`,event.host&&`Host: ${event.host}`,event.ip&&`IP: ${event.ip}`].filter(Boolean).join(' · ')||'No explicit entities'}</p>
+   <strong>{event.source}</strong><p className="message">{event.message}</p><p className="muted">{[event.actor&&`Actor: ${event.actor}`,event.host&&`Host: ${event.host}`,event.ip&&`IP: ${event.ip}`,event.tags?.length&&`Tags: ${event.tags.join(', ')}`].filter(Boolean).join(' · ')||'No explicit entities'}</p>
    <Decision key={event.version} event={event} id={id} disabled={disabled} onSaved={onSaved}/></div></label></li>)}</ol>
   <div className="actions"><button disabled={offset===0} onClick={()=>onOffset(Math.max(0,offset-100))}>Previous 100</button><span>{data?.total?`${offset+1}–${Math.min(offset+100,data.total)} of ${data.total}`:'0 events'}</span><button disabled={!data||offset+100>=data.total} onClick={()=>onOffset(offset+100)}>Next 100</button></div>
  </section>;

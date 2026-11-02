@@ -51,7 +51,7 @@ def update_incident(db: Database, id: str, title: str, description: str, status:
 
 def _event(row) -> dict:
     result = json.loads(row['payload'])
-    result.update({key: row[key] for key in ['id', 'incident_id', 'import_id', 'review_status', 'review_note', 'reviewed_by', 'version', 'updated_at']})
+    result.update({key: row[key] for key in ['id', 'incident_id', 'import_id', 'review_status', 'review_note', 'reviewed_by', 'tags', 'version', 'updated_at']})
     return result
 
 
@@ -145,7 +145,9 @@ def import_events(db: Database, id: str, preview: dict, format: str, zone: str, 
     return {**dict(db.query_one('SELECT * FROM imports WHERE id=?', (import_id,))), 'replayed': False}
 
 
-def review_event(db: Database, incident_id: str, event_id: str, status: str, note: str, version: int, actor: str) -> dict:
+def review_event(db: Database, incident_id: str, event_id: str, status: str, note: str, version: int, actor: str, tags: list[str] | None = None) -> dict:
+    if tags is None:
+        tags = []
     with db.transaction() as conn:
         case = conn.execute('SELECT status FROM incidents WHERE id=?', (incident_id,)).fetchone()
         if case is None:
@@ -157,10 +159,12 @@ def review_event(db: Database, incident_id: str, event_id: str, status: str, not
             raise AppError(404, 'event_not_found', 'Event was not found in this incident')
         if row['version'] != version:
             raise AppError(409, 'version_conflict', 'Event changed; refresh before saving the decision')
-        conn.execute('UPDATE events SET review_status=?,review_note=?,reviewed_by=?,version=version+1,updated_at=? WHERE id=?',
-                     (status, note.strip(), actor, utcnow(), event_id))
+        import json
+        tags_json = json.dumps(tags)
+        conn.execute('UPDATE events SET review_status=?,review_note=?,reviewed_by=?,tags=?,version=version+1,updated_at=? WHERE id=?',
+                     (status, note.strip(), actor, tags_json, utcnow(), event_id))
         audit(conn, actor, 'event.review', incident_id, {'event_id': event_id, 'previous_status': row['review_status'],
-                                                     'status': status, 'version': version + 1, 'note': note.strip()})
+                                                     'status': status, 'version': version + 1, 'note': note.strip(), 'tags': tags})
         conn.execute('UPDATE incidents SET updated_at=?,version=version+1 WHERE id=?', (utcnow(), incident_id))
         result = conn.execute('SELECT * FROM events WHERE id=?', (event_id,)).fetchone()
     return _event(result)
@@ -197,10 +201,12 @@ def bulk_review_events(db: Database, incident_id: str, event_ids: list[str], sta
 
         now = utcnow()
         updated = 0
+        import json
+        tags_json = json.dumps(tags)
         for row in rows:
             conn.execute(
-                'UPDATE events SET review_status=?, review_note=?, reviewed_by=?, version=version+1, updated_at=? WHERE id=?',
-                (status, note.strip(), actor, now, row['id'])
+                'UPDATE events SET review_status=?, review_note=?, reviewed_by=?, tags=?, version=version+1, updated_at=? WHERE id=?',
+                (status, note.strip(), actor, tags_json, now, row['id'])
             )
             audit(conn, actor, 'event.review', incident_id, {
                 'event_id': row['id'],

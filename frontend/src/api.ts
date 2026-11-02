@@ -24,7 +24,7 @@ export const api={
  update:(case_:Incident,status:'open'|'closed')=>request<Incident>(path(case_.id),'PATCH',{title:case_.title,description:case_.description,status,version:case_.version}),
  remove:(id:string)=>request<void>(path(id),'DELETE'),
  events:(id:string,offset:number,query:string,status:string,severity='',component='')=>request<Page<Event>>(path(id)+'/events?'+new URLSearchParams({offset:String(offset),limit:'100',query,review_status:status,...(severity?{severity}:{}),...(component?{component}:{})})),
- review:(id:string,event:Event,status:Event['review_status'],note:string)=>request<Event>(path(id)+'/events/'+event.id,'PATCH',{status,note,version:event.version}),
+    review:(id:string,event:Event,status:Event['review_status'],note:string,tags:string[]=[])=>request<Event>(path(id)+'/events/'+event.id,'PATCH',{status,note,version:event.version,tags}),
  bulkReview:(id:string,eventIds:string[],status:Event['review_status'],note:string,tags:string[])=>request<{updated:number;status:string;tags:string[]}>(path(id)+'/events/bulk','PATCH',{event_ids:eventIds,status,note,tags}),
  import:(id:string,file:File,format:string,zone:string,unit:string,commit:boolean)=>{
   const body=new FormData();body.set('file',file);body.set('format',format);body.set('timezone',zone);body.set('epoch_unit',unit);body.set('commit',String(commit));

@@ -1,11 +1,34 @@
 {
   "schema_version": 1,
-  "current_feature": "continue-implementation",
+  "current_feature": "event-tags-persistence",
   "features": [
+    {
+      "id": "event-tags-persistence",
+      "title": "Event tags persistence and UI display",
+      "status": "done",
+      "acceptance": [
+        "Tags stored in events table and returned by API",
+        "Single event review accepts optional tags field",
+        "Bulk review tags persisted to events table",
+        "Tags displayed in timeline list view and review panel"
+      ],
+      "implementation": [
+        "backend/app/core/db.py",
+        "backend/app/services/catalog.py",
+        "backend/app/api/routes.py",
+        "frontend/src/types.ts",
+        "frontend/src/api.ts",
+        "frontend/src/components/Timeline.tsx"
+      ],
+      "tests": [
+        "backend/tests/test_api.py",
+        "frontend/src/tests/timeline.test.tsx"
+      ]
+    },
     {
       "id": "continue-implementation",
       "title": "Continue implementation and resolve known failures",
-      "status": "in_progress",
+      "status": "planned",
       "acceptance": [
         "Run checks, fix failures, and implement the next planned feature"
       ],
