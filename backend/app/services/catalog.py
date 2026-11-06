@@ -49,9 +49,12 @@ def update_incident(db: Database, id: str, title: str, description: str, status:
     return incident(db, id)
 
 
+
+
 def _event(row) -> dict:
     result = json.loads(row['payload'])
-    result.update({key: row[key] for key in ['id', 'incident_id', 'import_id', 'review_status', 'review_note', 'reviewed_by', 'tags', 'version', 'updated_at']})
+    result.update({key: row[key] for key in ['id', 'incident_id', 'import_id', 'review_status', 'review_note', 'reviewed_by', 'version', 'updated_at']})
+    result['tags'] = json.loads(row['tags']) if row['tags'] else []
     return result
 
 
