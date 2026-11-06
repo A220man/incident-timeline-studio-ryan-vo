@@ -29,3 +29,28 @@ Status: planned
 Acceptance:
 - Run checks, fix failures, and implement the next planned feature
 
+### export-tags — Export review tags in CSV/JSON exports
+
+Status: planned
+
+Acceptance:
+- Tags included in CSV export
+- Tags included in JSON export
+
+Implementation: `backend/app/api/routes.py`, `backend/app/services/catalog.py`
+
+Tests: `backend/tests/test_api.py`
+
+### filter-by-tags — Filter events by tags in UI and API
+
+Status: planned
+
+Acceptance:
+- API supports filtering events by tag
+- UI adds tag filter to timeline controls
+- Multiple tag filter support (AND/OR)
+
+Implementation: `backend/app/api/routes.py`, `backend/app/services/catalog.py`, `frontend/src/components/Timeline.tsx`, `frontend/src/api.ts`
+
+Tests: `backend/tests/test_api.py`, `frontend/src/tests/timeline.test.tsx`
+

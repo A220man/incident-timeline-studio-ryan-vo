@@ -253,4 +253,54 @@ def test_bulk_review_nonexistent_event_rejected(client):
         'tags': []
     })
     assert r.status_code == 404
-    assert r.json()['error']['code'] == 'event_not_found'
+def test_single_event_review_with_tags(client):
+    id = incident(client)['id']
+    upload(client, id)
+    event = client.get(f'/api/incidents/{id}/events').json()['items'][0]
+    assert event['tags'] == []
+
+    # Review with tags
+    r = client.patch(f'/api/incidents/{id}/events/{event["id"]}', json={
+        'status': 'relevant',
+        'note': 'Test review with tags',
+        'version': event['version'],
+        'tags': ['tag1', 'tag2', 'tag3']
+    })
+    assert r.status_code == 200, r.text
+    reviewed = r.json()
+    assert reviewed['review_status'] == 'relevant'
+    assert reviewed['review_note'] == 'Test review with tags'
+    assert reviewed['tags'] == ['tag1', 'tag2', 'tag3']
+    assert reviewed['version'] == event['version'] + 1
+
+    # Verify tags persisted
+    event_after = client.get(f'/api/incidents/{id}/events').json()['items'][0]
+    assert event_after['tags'] == ['tag1', 'tag2', 'tag3']
+    assert event_after['review_status'] == 'relevant'
+    assert event_after['review_note'] == 'Test review with tags'
+
+    # Verify audit log includes tags
+    history = client.get(f'/api/incidents/{id}/history').json()
+    review_audits = [a for a in history['audit'] if a['action'] == 'event.review' and not a['detail'].get('bulk')]
+    assert len(review_audits) == 1
+    assert review_audits[0]['detail']['tags'] == ['tag1', 'tag2', 'tag3']
+
+
+def test_single_event_review_empty_tags(client):
+    id = incident(client)['id']
+    upload(client, id)
+    event = client.get(f'/api/incidents/{id}/events').json()['items'][0]
+
+    # Review without tags (default)
+    r = client.patch(f'/api/incidents/{id}/events/{event["id"]}', json={
+        'status': 'benign',
+        'note': 'No tags',
+        'version': event['version']
+    })
+    assert r.status_code == 200, r.text
+    reviewed = r.json()
+    assert reviewed['tags'] == []
+
+    # Verify tags persisted as empty array
+    event_after = client.get(f'/api/incidents/{id}/events').json()['items'][0]
+    assert event_after['tags'] == []

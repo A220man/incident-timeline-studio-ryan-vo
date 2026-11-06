@@ -34,6 +34,42 @@
       ],
       "implementation": [],
       "tests": []
+    },
+    {
+      "id": "export-tags",
+      "title": "Export review tags in CSV/JSON exports",
+      "status": "planned",
+      "acceptance": [
+        "Tags included in CSV export",
+        "Tags included in JSON export"
+      ],
+      "implementation": [
+        "backend/app/api/routes.py",
+        "backend/app/services/catalog.py"
+      ],
+      "tests": [
+        "backend/tests/test_api.py"
+      ]
+    },
+    {
+      "id": "filter-by-tags",
+      "title": "Filter events by tags in UI and API",
+      "status": "planned",
+      "acceptance": [
+        "API supports filtering events by tag",
+        "UI adds tag filter to timeline controls",
+        "Multiple tag filter support (AND/OR)"
+      ],
+      "implementation": [
+        "backend/app/api/routes.py",
+        "backend/app/services/catalog.py",
+        "frontend/src/components/Timeline.tsx",
+        "frontend/src/api.ts"
+      ],
+      "tests": [
+        "backend/tests/test_api.py",
+        "frontend/src/tests/timeline.test.tsx"
+      ]
     }
   ]
 }
