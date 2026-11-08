@@ -1,8 +1,12 @@
 # Changelog
 
-## 1.6.0 — work-in-progress checkpoint
+## 1.7.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.6.0 — work-in-progress checkpoint
+
+- Add export-tags: tags included in CSV export (semicolon-separated) and JSON export (via full event objects).
 
 ## 1.5.0 — work-in-progress checkpoint
 
@@ -41,3 +45,4 @@ Partial code published for continued development. Known issues: STATUS.md.
 - Add aggregate-only optional LLM advice with provider adapters and deterministic offline guidance.
 - Add a seeded train/held-out evaluation that exposes shared-infrastructure false positives.
 - Add a React/TypeScript dashboard and container deployment configuration.
+

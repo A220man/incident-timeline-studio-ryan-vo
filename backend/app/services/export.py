@@ -11,15 +11,17 @@ def cell(value):
 
 
 def timeline_csv(events: list[dict]) -> str:
-    fields = ['id', 'timestamp', 'source', 'severity', 'message', 'actor', 'host', 'ip', 'fingerprint', 'review_status', 'review_note', 'reviewed_by']
+    fields = ['id', 'timestamp', 'source', 'severity', 'message', 'actor', 'host', 'ip', 'fingerprint', 'review_status', 'review_note', 'reviewed_by', 'tags']
     stream = io.StringIO(newline='')
     writer = csv.writer(stream)
     writer.writerow(fields)
     for event in sorted(events, key=lambda event: (event['timestamp'], str(event['id']))):
-        writer.writerow([cell(event.get(field, '')) for field in fields])
+        tags = event.get('tags', [])
+        writer.writerow([cell(event.get(field, '')) if field != 'tags' else cell(';'.join(tags)) for field in fields])
     return stream.getvalue()
 
 
 def incident_json(incident: dict, events: list[dict], analysis: dict) -> str:
     return json.dumps({'schema_version': '1.0', 'incident': incident, 'events': events, 'analysis': analysis},
                       ensure_ascii=False, indent=2, allow_nan=False)
+

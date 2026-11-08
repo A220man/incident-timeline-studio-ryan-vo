@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-event-tags-persistence
+export-tags
 
 ## Roadmap
 
@@ -31,13 +31,13 @@ Acceptance:
 
 ### export-tags — Export review tags in CSV/JSON exports
 
-Status: planned
+Status: in_progress
 
 Acceptance:
 - Tags included in CSV export
 - Tags included in JSON export
 
-Implementation: `backend/app/api/routes.py`, `backend/app/services/catalog.py`
+Implementation: `backend/app/services/export.py`
 
 Tests: `backend/tests/test_api.py`
 
