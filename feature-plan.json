@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "current_feature": "event-tags-persistence",
+  "current_feature": "export-tags",
   "features": [
     {
       "id": "event-tags-persistence",
@@ -38,14 +38,13 @@
     {
       "id": "export-tags",
       "title": "Export review tags in CSV/JSON exports",
-      "status": "planned",
+      "status": "in_progress",
       "acceptance": [
         "Tags included in CSV export",
         "Tags included in JSON export"
       ],
       "implementation": [
-        "backend/app/api/routes.py",
-        "backend/app/services/catalog.py"
+        "backend/app/services/export.py"
       ],
       "tests": [
         "backend/tests/test_api.py"
@@ -73,3 +72,4 @@
     }
   ]
 }
+
