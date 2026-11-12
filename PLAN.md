@@ -4,7 +4,7 @@ Each round completes one feature or repair. Future items are planned, not implem
 
 ## Current round
 
-export-tags
+continue-implementation
 
 ## Roadmap
 
@@ -24,14 +24,14 @@ Tests: `backend/tests/test_api.py`, `frontend/src/tests/timeline.test.tsx`
 
 ### continue-implementation — Continue implementation and resolve known failures
 
-Status: planned
+Status: in_progress
 
 Acceptance:
 - Run checks, fix failures, and implement the next planned feature
 
 ### export-tags — Export review tags in CSV/JSON exports
 
-Status: in_progress
+Status: done
 
 Acceptance:
 - Tags included in CSV export
