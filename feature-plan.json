@@ -1,75 +1,75 @@
-{
-  "schema_version": 1,
-  "current_feature": "export-tags",
-  "features": [
-    {
-      "id": "event-tags-persistence",
-      "title": "Event tags persistence and UI display",
-      "status": "done",
-      "acceptance": [
-        "Tags stored in events table and returned by API",
-        "Single event review accepts optional tags field",
-        "Bulk review tags persisted to events table",
-        "Tags displayed in timeline list view and review panel"
-      ],
-      "implementation": [
-        "backend/app/core/db.py",
-        "backend/app/services/catalog.py",
-        "backend/app/api/routes.py",
-        "frontend/src/types.ts",
-        "frontend/src/api.ts",
-        "frontend/src/components/Timeline.tsx"
-      ],
-      "tests": [
-        "backend/tests/test_api.py",
-        "frontend/src/tests/timeline.test.tsx"
-      ]
-    },
-    {
-      "id": "continue-implementation",
-      "title": "Continue implementation and resolve known failures",
-      "status": "planned",
-      "acceptance": [
-        "Run checks, fix failures, and implement the next planned feature"
-      ],
-      "implementation": [],
-      "tests": []
-    },
-    {
-      "id": "export-tags",
-      "title": "Export review tags in CSV/JSON exports",
-      "status": "in_progress",
-      "acceptance": [
-        "Tags included in CSV export",
-        "Tags included in JSON export"
-      ],
-      "implementation": [
-        "backend/app/services/export.py"
-      ],
-      "tests": [
-        "backend/tests/test_api.py"
-      ]
-    },
-    {
-      "id": "filter-by-tags",
-      "title": "Filter events by tags in UI and API",
-      "status": "planned",
-      "acceptance": [
-        "API supports filtering events by tag",
-        "UI adds tag filter to timeline controls",
-        "Multiple tag filter support (AND/OR)"
-      ],
-      "implementation": [
-        "backend/app/api/routes.py",
-        "backend/app/services/catalog.py",
-        "frontend/src/components/Timeline.tsx",
-        "frontend/src/api.ts"
-      ],
-      "tests": [
-        "backend/tests/test_api.py",
-        "frontend/src/tests/timeline.test.tsx"
-      ]
-    }
-  ]
-}
+  {
+    "schema_version": 1,
+    "current_feature": "continue-implementation",
+    "features": [
+      {
+        "id": "event-tags-persistence",
+        "title": "Event tags persistence and UI display",
+        "status": "done",
+        "acceptance": [
+          "Tags stored in events table and returned by API",
+          "Single event review accepts optional tags field",
+          "Bulk review tags persisted to events table",
+          "Tags displayed in timeline list view and review panel"
+        ],
+        "implementation": [
+          "backend/app/core/db.py",
+          "backend/app/services/catalog.py",
+          "backend/app/api/routes.py",
+          "frontend/src/types.ts",
+          "frontend/src/api.ts",
+          "frontend/src/components/Timeline.tsx"
+        ],
+        "tests": [
+          "backend/tests/test_api.py",
+          "frontend/src/tests/timeline.test.tsx"
+        ]
+      },
+      {
+        "id": "continue-implementation",
+        "title": "Continue implementation and resolve known failures",
+        "status": "in_progress",
+        "acceptance": [
+          "Run checks, fix failures, and implement the next planned feature"
+        ],
+        "implementation": [],
+        "tests": []
+      },
+      {
+        "id": "export-tags",
+        "title": "Export review tags in CSV/JSON exports",
+        "status": "done",
+        "acceptance": [
+          "Tags included in CSV export",
+          "Tags included in JSON export"
+        ],
+        "implementation": [
+          "backend/app/services/export.py"
+        ],
+        "tests": [
+          "backend/tests/test_api.py"
+        ]
+      },
+      {
+        "id": "filter-by-tags",
+        "title": "Filter events by tags in UI and API",
+        "status": "planned",
+        "acceptance": [
+          "API supports filtering events by tag",
+          "UI adds tag filter to timeline controls",
+          "Multiple tag filter support (AND/OR)"
+        ],
+        "implementation": [
+          "backend/app/api/routes.py",
+          "backend/app/services/catalog.py",
+          "frontend/src/components/Timeline.tsx",
+          "frontend/src/api.ts"
+        ],
+        "tests": [
+          "backend/tests/test_api.py",
+          "frontend/src/tests/timeline.test.tsx"
+        ]
+      }
+    ]
+  }
 

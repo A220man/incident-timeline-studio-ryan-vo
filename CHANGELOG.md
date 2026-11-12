@@ -1,8 +1,12 @@
 # Changelog
 
-## 1.7.0 — work-in-progress checkpoint
+## 1.8.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
+
+## 1.7.0 — work-in-progress checkpoint
+
+Complete export-tags: tags now included in CSV and JSON exports.
 
 ## 1.6.0 — work-in-progress checkpoint
 
