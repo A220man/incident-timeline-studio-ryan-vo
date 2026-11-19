@@ -3,7 +3,7 @@
 > Work in progress. This checkpoint may be incomplete or fail tests. See PLAN.md and STATUS.md before use.
 
 
-Current version: `1.0.0`.
+Current version: `1.9.0`.
 
 Incident Timeline Studio helps security analysts turn mixed CSV and JSON logs into a reviewable UTC timeline. It combines explicit timestamp normalization, entity-based temporal correlation, robust event-rate statistics, and optional grounded LLM advice. Every import and analyst decision is recorded, with version checks to prevent lost updates.
 
