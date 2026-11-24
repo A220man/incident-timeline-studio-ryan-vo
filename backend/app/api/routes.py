@@ -99,9 +99,10 @@ async def ingest(request: Request, id: str, file: UploadFile = File(...), format
 def events(request: Request, id: str, limit: int = Query(200, ge=1, le=1000), offset: int = Query(0, ge=0),
            source: str = Query('', max_length=128), review_status: Literal['', 'unreviewed', 'relevant', 'benign'] = '',
            severity: Literal['', 'debug', 'info', 'low', 'medium', 'high', 'critical', 'unknown'] = '',
-           query: str = Query('', max_length=256), component: str = Query('', max_length=64)):
+           query: str = Query('', max_length=256), component: str = Query('', max_length=64),
+           tag: str = Query('', max_length=64)):
     authorize(request)
-    return catalog.list_events(request.app.state.db, id, limit, offset, source, review_status, query, severity, component)
+    return catalog.list_events(request.app.state.db, id, limit, offset, source, review_status, query, severity, component, tag)
 
 
 @router.get('/incidents/{id}/components')
