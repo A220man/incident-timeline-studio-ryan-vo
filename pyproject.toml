@@ -3,7 +3,7 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "incident-timeline-studio-ryan-vo"
-version = "1.10.0"
+version = "1.11.0"
 description = "Evidence-centered incident timeline analysis and analyst review workspace"
 requires-python = ">=3.11"
 authors = [{name = "Ryan Vo", email = "ryandtvo@gmail.com"}]

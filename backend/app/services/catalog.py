@@ -60,7 +60,7 @@ def _event(row) -> dict:
 
 def list_events(db: Database, id: str, limit: int = 200, offset: int = 0,
                 source: str = '', review_status: str = '', query: str = '', severity: str = '',
-                component: str = '', tag: str = '') -> dict:
+                component: str = '') -> dict:
     incident(db, id)
     clauses, params = ['incident_id=?'], [id]
     if source:
@@ -79,15 +79,10 @@ def list_events(db: Database, id: str, limit: int = 200, offset: int = 0,
             params.extend(component_event_ids)
         else:
             return {'items': [], 'total': 0, 'limit': limit, 'offset': offset}
-    if tag:
-        clauses.append('tags LIKE ?')
-        params.append(f'%{tag}%')
     where = ' AND '.join(clauses)
     rows = db.query(f'SELECT * FROM events WHERE {where} ORDER BY timestamp,id LIMIT ? OFFSET ?', (*params, limit, offset))
     total = db.query_one(f'SELECT COUNT(*) AS n FROM events WHERE {where}', params)['n']
     return {'items': [_event(row) for row in rows], 'total': total, 'limit': limit, 'offset': offset}
-
-
 
 
 def _get_component_event_ids(db: Database, incident_id: str, component_id: str) -> list[str]:
